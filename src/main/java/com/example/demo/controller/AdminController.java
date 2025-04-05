@@ -19,6 +19,7 @@ public class AdminController {
             if (adminService.deActiveUserOrAuthor(usernameRequestDto.getUsername())) {
                 return ResponseEntity.ok("User " + usernameRequestDto.getUsername() + " has been deactivated successfully.");
             } else {
+                System.out.println("salam");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User " + usernameRequestDto.getUsername() + " not found");
             }
         } catch (Exception exception) {
