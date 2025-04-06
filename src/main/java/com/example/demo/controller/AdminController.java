@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.service.core.AdminService;
-import com.example.demo.service.dto.requestDto.UsernameRequestDto;
+import com.example.demo.dto.requestDto.UsernameRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

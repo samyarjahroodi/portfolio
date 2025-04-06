@@ -1,4 +1,4 @@
-package com.example.demo.service.dto.ResponseDto;
+package com.example.demo.dto.ResponseDto;
 
 import lombok.*;
 

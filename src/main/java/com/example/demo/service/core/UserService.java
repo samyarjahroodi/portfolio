@@ -5,7 +5,7 @@ import com.example.demo.entity.User;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UsersRepository;
 import com.example.demo.security.JwtUtil;
-import com.example.demo.service.dto.requestDto.UserRegistrationRequestDto;
+import com.example.demo.dto.requestDto.UserRegistrationRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
