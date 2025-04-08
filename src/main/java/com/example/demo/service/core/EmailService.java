@@ -21,4 +21,5 @@ public class EmailService {
                 + "http://localhost:8000/api/auth/confirm-account?token=" + token);
         javaMailSender.send(mailMessage);
     }
+
 }

@@ -47,4 +47,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Article> article;
 
+    @Column(nullable = false)
+   private boolean isEnabledByRegistration;
+
 }

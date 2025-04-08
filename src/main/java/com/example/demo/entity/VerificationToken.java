@@ -3,6 +3,8 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
@@ -17,8 +19,11 @@ public class VerificationToken {
     private String token;
 
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = false,name = "user_id")
+    @JoinColumn(nullable = true,name = "user_id")
     private User user;
+
+    @Column(nullable = false)
+    private Date expiryDate;
 
 
 }
