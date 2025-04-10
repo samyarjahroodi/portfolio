@@ -17,4 +17,6 @@ public class UserRegistrationRequestDto {
 
     private String email;
 
+    private String captcha;
+
 }

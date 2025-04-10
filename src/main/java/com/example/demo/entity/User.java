@@ -28,8 +28,8 @@ public class User {
     @Pattern(regexp = "^[A-Za-z0-9+_.-]+@(.+)$", message = "Invalid email format")
     private String email;
 
-    @Column(nullable = false)
-    private boolean isDisable = false;
+    @Column(nullable = false, name = "disabledByAdmin")
+    private boolean isDisabledByAdmin = false;
 
     @OneToMany(mappedBy = "user")
     private List<UserLogin> userLogin;
@@ -44,10 +44,13 @@ public class User {
     @Column(nullable = false)
     private boolean isGlobalAdmin = false;
 
+    @Column(nullable = false, name = "enable Registration")
+    private boolean isEnabledByRegistration = false;
+
     @OneToMany(mappedBy = "user")
     private List<Article> article;
 
-    @Column(nullable = false)
-   private boolean isEnabledByRegistration;
+    @OneToOne(mappedBy = "user",cascade = CascadeType.ALL)
+    private VerificationToken verificationToken;
 
 }

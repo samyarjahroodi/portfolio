@@ -8,6 +8,7 @@ import com.example.demo.dto.ResponseDto.UserRegistrationResponseDto;
 import com.example.demo.dto.requestDto.UserLoginRequestDto;
 import com.example.demo.dto.requestDto.UserRegistrationRequestDto;
 import com.example.demo.service.core.VerificationTokenService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,14 +28,24 @@ public class UserController {
     private VerificationTokenService tokenService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserRegistrationResponseDto> createUser(@RequestBody UserRegistrationRequestDto userRegistrationRequestDto) {
+    public ResponseEntity<?> createUser(@RequestBody UserRegistrationRequestDto userRegistrationRequestDto
+            , HttpSession session) {
+        String expectedCaptcha = (String) session.getAttribute("captcha");
+        if (!userRegistrationRequestDto.getCaptcha().equalsIgnoreCase(expectedCaptcha)) {
+            return ResponseEntity.badRequest().body("Invalid Captcha.");
+        }
+
         User savedUser = userService.saveUser(userRegistrationRequestDto);
         UserRegistrationResponseDto userRegistrationResponseDto = userMapper.userToUserRegistrationResponseDto(savedUser);
         return ResponseEntity.ok(userRegistrationResponseDto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody UserLoginRequestDto userLoginRequestDto) {
+    public ResponseEntity<?> login(@RequestBody UserLoginRequestDto userLoginRequestDto, HttpSession httpSession) {
+        String expectedCaptcha = (String) httpSession.getAttribute("captcha");
+        if (!userLoginRequestDto.getCaptcha().equalsIgnoreCase(expectedCaptcha)) {
+            return ResponseEntity.badRequest().body("Invalid Captcha.");
+        }
         return userService.checkLogin(userLoginRequestDto.getUsername(), userLoginRequestDto.getPassword());
     }
 

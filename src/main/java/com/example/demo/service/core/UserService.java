@@ -4,7 +4,7 @@ import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.entity.VerificationToken;
 import com.example.demo.mapper.UserMapper;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.UsersRepository;
 import com.example.demo.security.JwtUtil;
 import com.example.demo.dto.requestDto.UserRegistrationRequestDto;
 import org.slf4j.Logger;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Service
 public class UserService {
     @Autowired
-    private UserRepository userRepository;
+    private UsersRepository usersRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -33,10 +33,10 @@ public class UserService {
     private UserMapper userMapper;
 
     @Autowired
-    private EmailService emailService;
+    private VerificationTokenService tokenService;
 
     @Autowired
-    private VerificationTokenService verificationTokenService;
+    private EmailService emailService;
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -47,16 +47,16 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userRegistrationRequestDto.getPassword()));
         user.setRole(Role.USER);
 
-        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user);
+        VerificationToken verificationToken = tokenService.createVerificationToken(user);
+        String token = verificationToken.getToken();
+        emailService.SendVerificationEmail(user, token);
 
-        emailService.SendVerificationEmail(user, verificationToken.getToken());
 
-
-        return userRepository.save(user);
+        return usersRepository.save(user);
     }
 
     public ResponseEntity<Object> checkLogin(String username, String rawPassword) {
-        User userById = userRepository.findByUsername(username);
+        User userById = usersRepository.findByUsername(username);
 
         if (userById != null && passwordEncoder.matches(rawPassword, userById.getPassword())) {
             String jwtToken = jwtUtil.generateToken(userById.getUsername(), userById.getRole());
@@ -70,8 +70,9 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
     }
 
+
     public void enabledQualifiedUser(User user) {
         user.setEnabledByRegistration(true);
-        userRepository.save(user);
+        usersRepository.save(user);
     }
 }

@@ -33,8 +33,10 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/users/register", "/users/login").permitAll()
+                        auth -> auth.requestMatchers("/users/register", "/users/login","/users/confirm-account").permitAll()
+                                .requestMatchers("/captcha/**").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/author/**").hasRole("AUTHOR")
                                 .anyRequest().authenticated()

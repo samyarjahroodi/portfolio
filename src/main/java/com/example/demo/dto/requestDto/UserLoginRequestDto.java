@@ -11,4 +11,6 @@ public class UserLoginRequestDto {
     private String username;
 
     private String password;
+
+    private String captcha;
 }
