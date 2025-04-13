@@ -16,16 +16,12 @@ public class AdminService {
 
     public boolean deActiveUserOrAuthor(String username) {
         try {
-            User user = usersRepository.findByUsername(username);
-            if (user != null) {
+            User user = usersRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+
                 user.setDeActive(true);
                 usersRepository.save(user);
                 logger.info("User {} has been deactivated successfully.", username);
                 return true;
-            }else{
-                logger.warn("User {} not found.", username);
-                return false;
-            }
         } catch (Exception e) {
             logger.error("Error occurred while deactivating user {}: {}", username, e.getMessage());
             return false;
