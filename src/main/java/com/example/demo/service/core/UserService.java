@@ -5,10 +5,9 @@ import com.example.demo.entity.User;
 import com.example.demo.entity.VerificationToken;
 import com.example.demo.exeption.UserAlreadyExistsException;
 import com.example.demo.mapper.UserMapper;
-import com.example.demo.repository.UsersRepository;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
 import com.example.demo.dto.requestDto.UserRegistrationRequestDto;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,7 @@ import java.util.UUID;
 @Service
 public class UserService {
     @Autowired
-    private UsersRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -66,6 +65,25 @@ public class UserService {
         User user = userMapper.userDtoRegistrationRequestToUser(userRegistrationRequestDto);
         user.setPassword(passwordEncoder.encode(userRegistrationRequestDto.getPassword()));
         user.setRole(Role.USER);
+
+        VerificationToken verificationToken = tokenService.createVerificationToken(user);
+        String token = verificationToken.getToken();
+        emailService.SendVerificationEmail(user, token);
+
+
+        return userRepository.save(user);
+    }
+
+    public User saveAuthor(UserRegistrationRequestDto userRegistrationRequestDto) {
+
+        if (checkIfUserExists(userRegistrationRequestDto.getUsername())) {
+            throw new UserAlreadyExistsException("Username already exists");
+        }
+        logger.info("Registering Author with username; {}", userRegistrationRequestDto.getUsername());
+
+        User user = userMapper.userDtoRegistrationRequestToUser(userRegistrationRequestDto);
+        user.setPassword(passwordEncoder.encode(userRegistrationRequestDto.getPassword()));
+        user.setRole(Role.AUTHOR);
 
         VerificationToken verificationToken = tokenService.createVerificationToken(user);
         String token = verificationToken.getToken();

@@ -35,12 +35,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/users/register", "/users/login"
-                                        ,"/users/confirm-account","/forgot-password","/users/reset-password").permitAll()
+                        auth -> auth.requestMatchers("/users/register/user", "/users/login"
+                                        ,"/users/confirm-account","/forgot-password",
+                                        "/users/reset-password","/users/register/author").permitAll()
                                 .requestMatchers("/captcha/**").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/author/**").hasRole("AUTHOR")
-                                .anyRequest().authenticated()
 
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

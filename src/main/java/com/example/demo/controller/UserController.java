@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.requestDto.ArticleRequestDto;
 import com.example.demo.entity.User;
 import com.example.demo.entity.VerificationToken;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.service.core.AuthorService;
 import com.example.demo.service.core.UserService;
 import com.example.demo.dto.ResponseDto.UserRegistrationResponseDto;
 import com.example.demo.dto.requestDto.UserLoginRequestDto;
@@ -11,6 +13,7 @@ import com.example.demo.service.core.VerificationTokenService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -27,8 +30,10 @@ public class UserController {
     @Autowired
     private VerificationTokenService tokenService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> createUser(@RequestBody UserRegistrationRequestDto userRegistrationRequestDto
+    private AuthorService authorService;
+
+    @PostMapping("/register/user")
+    public ResponseEntity<?> registerUser(@RequestBody UserRegistrationRequestDto userRegistrationRequestDto
             , HttpSession session) {
         String expectedCaptcha = (String) session.getAttribute("captcha");
         if (!userRegistrationRequestDto.getCaptcha().equalsIgnoreCase(expectedCaptcha)) {
@@ -39,6 +44,20 @@ public class UserController {
         UserRegistrationResponseDto userRegistrationResponseDto = userMapper.userToUserRegistrationResponseDto(savedUser);
         return ResponseEntity.ok(userRegistrationResponseDto);
     }
+
+    @PostMapping("/register/author")
+    public ResponseEntity<?> registerAuthor(@RequestBody UserRegistrationRequestDto userRegistrationRequestDto
+            , HttpSession session) {
+        String expectedCaptcha = (String) session.getAttribute("captcha");
+        if (!userRegistrationRequestDto.getCaptcha().equalsIgnoreCase(expectedCaptcha)) {
+            return ResponseEntity.badRequest().body("Invalid Captcha.");
+        }
+
+        User savedUser = userService.saveAuthor(userRegistrationRequestDto);
+        UserRegistrationResponseDto userRegistrationResponseDto = userMapper.userToUserRegistrationResponseDto(savedUser);
+        return ResponseEntity.ok(userRegistrationResponseDto);
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginRequestDto userLoginRequestDto, HttpSession httpSession) {
@@ -63,20 +82,24 @@ public class UserController {
         return ResponseEntity.ok("Account Verified Successfully.");
     }
 
-    @PostMapping("/forgot-password")
+    @PostMapping("/fogot-password")
     public ResponseEntity<?> forgotPassword(@RequestParam String email) {
         userService.initiatePasswordReset(email);
-        return ResponseEntity.ok("Password reset link sent to your email");
+        return ResponseEntity.ok().body("Password reset link sent to your email.");
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(
-            @RequestParam String token,
-            @RequestParam String newPassword) {
-
+    public ResponseEntity<?> resetPassword(@RequestParam String token,
+                                           @RequestParam String newPassword) {
         userService.completePasswordReset(token, newPassword);
-        return ResponseEntity.ok("Password reset successfully");
+        return ResponseEntity.ok().body("Password reset successfully.");
     }
 
+    @PostMapping("/publish-content")
+    @PreAuthorize("hasRole('AUTHOR')")
+    public ResponseEntity<?> publishContent(@RequestBody ArticleRequestDto articleRequestDto) {
+        authorService.submitContent(articleRequestDto);
+        return ResponseEntity.ok().body("Publish content successfully");
+    }
 
 }

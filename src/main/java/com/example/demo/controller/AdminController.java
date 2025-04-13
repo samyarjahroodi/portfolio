@@ -5,6 +5,7 @@ import com.example.demo.dto.requestDto.UsernameRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +24,20 @@ public class AdminController {
             }
         } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deactivating the user.");
+        }
+    }
+
+    @PostMapping("/active-author")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> activeAuthor(@RequestBody UsernameRequestDto usernameRequestDto) {
+        try {
+            if (adminService.activeAuthor(usernameRequestDto.getUsername())) {
+                return ResponseEntity.ok("User " + usernameRequestDto.getUsername() + " has been activated successfully.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User " + usernameRequestDto.getUsername() + " not found");
+            }
+        } catch (Exception exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while +activating the user.");
         }
     }
 }
