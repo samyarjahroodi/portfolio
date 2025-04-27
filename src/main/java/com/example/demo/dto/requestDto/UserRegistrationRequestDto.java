@@ -2,9 +2,6 @@ package com.example.demo.dto.requestDto;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 @Getter
 @Setter
 @AllArgsConstructor

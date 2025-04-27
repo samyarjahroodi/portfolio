@@ -16,10 +16,11 @@ public class UserLogin {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "users", nullable = false)
     private User user;
 
-    private LocalDateTime loginTime;
+    @Column(nullable = false)
+    private LocalDateTime loginTime = LocalDateTime.now();
 
 }

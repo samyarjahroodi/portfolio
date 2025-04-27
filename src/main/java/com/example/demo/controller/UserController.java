@@ -14,6 +14,9 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -100,6 +103,13 @@ public class UserController {
     public ResponseEntity<?> publishContent(@RequestBody ArticleRequestDto articleRequestDto) {
         authorService.submitContent(articleRequestDto);
         return ResponseEntity.ok().body("Publish content successfully");
+    }
+
+    @GetMapping("/home")
+    public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        // Add username to the model
+        model.addAttribute("name", principal.getAttribute("name"));
+        return "home";
     }
 
 }

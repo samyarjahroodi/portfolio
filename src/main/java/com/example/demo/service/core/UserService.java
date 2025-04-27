@@ -2,9 +2,11 @@ package com.example.demo.service.core;
 
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
+import com.example.demo.entity.UserLogin;
 import com.example.demo.entity.VerificationToken;
-import com.example.demo.exeption.UserAlreadyExistsException;
+import com.example.demo.exception.UserAlreadyExistsException;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.repository.UserLoginRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtil;
 import com.example.demo.dto.requestDto.UserRegistrationRequestDto;
@@ -21,9 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -45,6 +45,8 @@ public class UserService {
 
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private UserLoginRepository userLoginRepository;
 
     private final JavaMailSender mailSender;
 
@@ -70,6 +72,11 @@ public class UserService {
         String token = verificationToken.getToken();
         emailService.SendVerificationEmail(user, token);
 
+        UserLogin userLogin = new UserLogin();
+        userLogin.setUser(user);
+        userLogin.setLoginTime(LocalDateTime.now());
+        user.setUserLogin(Collections.singletonList(userLogin));
+
 
         return userRepository.save(user);
     }
@@ -89,6 +96,10 @@ public class UserService {
         String token = verificationToken.getToken();
         emailService.SendVerificationEmail(user, token);
 
+        UserLogin userLogin = new UserLogin();
+        userLogin.setUser(user);
+        userLogin.setLoginTime(LocalDateTime.now());
+        user.setUserLogin(Collections.singletonList(userLogin));
 
         return userRepository.save(user);
     }
@@ -143,6 +154,10 @@ public class UserService {
         mailSender.send(message);
     }
 
+    public Optional<User> findByEmail(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found")));
+    }
+
     public void completePasswordReset(String token, String newPassword) {
         User user = userRepository.findByResetPasswordToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));
@@ -156,4 +171,9 @@ public class UserService {
         user.setResetPasswordTokenExpiry(null);
         userRepository.save(user);
     }
+
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
 }

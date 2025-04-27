@@ -22,6 +22,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
+    @Column
+    private String fullName;
+
     @Column(nullable = false)
     private String password;
 
@@ -32,7 +35,7 @@ public class User {
     @Column(nullable = false, name = "disabledByAdmin")
     private boolean isDisabledByAdmin = false;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserLogin> userLogin;
 
     @Column(nullable = false)
@@ -51,7 +54,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Article> article;
 
-    @OneToOne(mappedBy = "user",cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private VerificationToken verificationToken;
 
     @Column(name = "reset_password_token")
@@ -59,5 +62,8 @@ public class User {
 
     @Column(name = "reset_password_token_expiry")
     private LocalDateTime resetPasswordTokenExpiry;
+
+    @Enumerated(EnumType.STRING)
+    private Provider provider;
 
 }

@@ -1,7 +1,9 @@
 package com.example.demo.config;
 
 import com.example.demo.security.JwtRequestFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.service.core.CustomOAuth2UserService;
+import com.example.demo.service.core.OAuth2AuthenticationSuccessHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,8 +12,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,31 +22,55 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private JwtRequestFilter jwtRequestFilter;
+    private final JwtRequestFilter jwtRequestFilter;
+
+    private final CustomOAuth2UserService oAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
+
 
     //disable CSRF for stateless APIs
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        if (oAuth2UserService == null) {
+            throw new IllegalStateException("CustomOAuth2UserService is not initialized");
+        }
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/users/register/user", "/users/login"
-                                        ,"/users/confirm-account","/forgot-password",
-                                        "/users/reset-password","/users/register/author").permitAll()
-                                .requestMatchers("/captcha/**").permitAll()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/author/**").hasRole("AUTHOR")
-
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/users/register/user",
+                                "/users/login",
+                                "/users/confirm-account",
+                                "/forgot-password",
+                                "/users/reset-password",
+                                "/users/register/author",
+                                "/captcha/**",
+                                "/oauth2/**",
+                                "/login/oauth2/code/google" // Add OAuth2 callback endpoint
+                        ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/author/**").hasRole("AUTHOR")
+                        .anyRequest().authenticated()
                 )
+                // Add JWT filter
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-        ;
+                // Configure OAuth2
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri("/login/oauth2/code/*")
+                        )
+                );
 
         return http.build();
     }
@@ -64,11 +88,6 @@ public class SecurityConfig {
         return source;
     }
 
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public AuthenticationManager authenticationManager
