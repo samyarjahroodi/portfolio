@@ -8,6 +8,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -40,16 +43,30 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         // Generate token
         String token = jwtUtil.generateToken(oauthUser.getUsername(), Role.valueOf(role));
 
+        // Set JWT in HTTP-only cookie
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(false) // true in production
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 1 week
+                .sameSite("Lax")
+                .domain("localhost") // Change for production
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
         // Create response DTO
         Map<String, String> responseBody = new HashMap<>();
         responseBody.put("token", token);
         responseBody.put("username", oauthUser.getUsername());
         responseBody.put("role", role);
 
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), responseBody);
         // Set response headers and write JSON
-        response.setContentType("application/json");
+        /*response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(objectMapper.writeValueAsString(responseBody));
-        response.getWriter().flush();
+        response.getWriter().flush();*/
     }
 }

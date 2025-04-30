@@ -75,8 +75,9 @@ public class UserService {
         UserLogin userLogin = new UserLogin();
         userLogin.setUser(user);
         userLogin.setLoginTime(LocalDateTime.now());
-        user.setUserLogin(Collections.singletonList(userLogin));
+        userLoginRepository.save(userLogin);
 
+        user.setUserLogin(Collections.singletonList(userLogin));
 
         return userRepository.save(user);
     }

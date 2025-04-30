@@ -18,7 +18,7 @@ public class EmailService {
         mailMessage.setTo(user.getEmail());
         mailMessage.setSubject("Complete Registration");
         mailMessage.setText("To confirm your account, please click here: "
-                + "http://localhost:8000/api/auth/confirm-account?token=" + token);
+                + "http://localhost:8081/api/auth/confirm-account?token=" + token);
         javaMailSender.send(mailMessage);
     }
 }

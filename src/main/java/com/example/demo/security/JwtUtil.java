@@ -17,7 +17,7 @@ public class JwtUtil {
     public String generateToken(String username, Role role) {
         return Jwts.builder()
                 .setSubject(username)
-                .claim("role", role)
+                .claim("role", role.name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
@@ -28,7 +28,7 @@ public class JwtUtil {
         return getClaims(token).getSubject();
     }
 
-    public Role extractRole(String token) {
+/*    public Role extractRole(String token) {
         Claims claims = getClaims(token);
         String roleString = claims.get("role", String.class);
 
@@ -37,7 +37,13 @@ public class JwtUtil {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Invalid role found in JWT token: " + roleString);
         }
-    }
+    }*/
+
+/*    public Role extractRole(String token) {
+        String roleString = getClaims(token).get("role", String.class);
+        return Role.valueOf(roleString);
+    }*/
+
 
     public boolean validateToken(String token, String username) {
         return (extractUsername(token)).equals(username) && !isTokenExpired(token);
